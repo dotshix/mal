@@ -1,5 +1,6 @@
-use std::io::Write;
-use text_io::try_read;
+use rustyline::config::Configurer;
+use rustyline::error::ReadlineError;
+use rustyline::{DefaultEditor, Result};
 
 fn read(input: String) -> String {
     input
@@ -17,21 +18,32 @@ fn rep(input: String) -> String {
     print(eval(read(input)))
 }
 
-fn main() {
+fn main() -> Result<()> {
+    let mut rl = DefaultEditor::new()?;
+    rl.set_auto_add_history(true);
+
     loop {
-        print!("user> ");
-        std::io::stdout().flush().unwrap(); // Ensure prompt is displayed
+        let readline = rl.readline("user> ");
 
-        let input: Result<String, _> = try_read!("{}\n");
-
-        match input {
+        match readline {
             Ok(line) => {
-                let output = rep(line);
-                println!("{}", output);
+                println!("{}", rep(line));
             }
-            Err(_) => {
-                break; // Exit loop on EOF or any read error
+
+            Err(ReadlineError::Interrupted) => {
+                break
+            }
+
+            Err(ReadlineError::Eof) => {
+                break
+            }
+
+            Err(err) => {
+                eprintln!("Error {}", err);
+                break
             }
         }
     }
+
+    Ok(())
 }

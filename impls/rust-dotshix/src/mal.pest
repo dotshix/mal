@@ -1,0 +1,15 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
+TILDE_AT = { "~@" }
+SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "'" | "`" | "~" | "^" | "@" }
+
+STRING = { "\"" ~ (raw_string | escape)* ~ "\"" }
+
+raw_string = { (!("\\" | "\"") ~ ANY)+ }
+predefined = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
+escape = { "\\" ~ predefined }
+
+COMMENT = @{ ";" ~ ANY* }
+
+NON_SPECIAL_SEQ = @{
+    (!SPECIAL_CHAR ~ !WHITESPACE ~ ANY)+ | "true" | "false" | "nil"
+}

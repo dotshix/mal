@@ -1,12 +1,12 @@
-all: target/debug/step0_repl
+all: target/debug/step1_read_print
 
-target/debug/step0_repl:
-	@echo "Building step0_repl..."
-	cargo build --bin step0_repl
+target/debug/step1_read_print:
+	@echo "Building step1_read_print..."
+	cargo build --bin step1_read_print
 
 clean:
 	cargo clean
-	rm -f target/debug/step0_repl
+	rm -f target/debug/step1_read_print
 
 test^rust-dotshix^step0: impls/rust-dotshix/target/debug/step0_repl
 	@echo "Running tests for rust-dotshix step0"

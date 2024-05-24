@@ -1,6 +1,6 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
 TILDE_AT = { "~@" }
-SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "'" | "`" | "~" | "^" | "@" }
+SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" }
 
 STRING = { "\"" ~ (raw_string | escape)* ~ "\"" }
 
@@ -8,8 +8,14 @@ raw_string = { (!("\\" | "\"") ~ ANY)+ }
 predefined = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
 escape = { "\\" ~ predefined }
 
-COMMENT = @{ ";" ~ ANY* }
+COMMENT = @{ ";" ~ (!("\n" | "\r") ~ ANY)* }
 
 NON_SPECIAL_SEQ = @{
     (!SPECIAL_CHAR ~ !WHITESPACE ~ ANY)+ | "true" | "false" | "nil"
 }
+
+list = { "(" ~ expr* ~ ")" }
+
+expr = _{ STRING | COMMENT | NON_SPECIAL_SEQ | list }
+
+mal = { SOI ~ expr* ~ EOI }

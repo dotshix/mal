@@ -11,7 +11,7 @@ escape = { "\\" ~ predefined }
 COMMENT = @{ ";" ~ (!("\n" | "\r") ~ ANY)* }
 
 NON_SPECIAL_SEQ = @{
-    (!SPECIAL_CHAR ~ !WHITESPACE ~ ANY)+ | "true" | "false" | "nil"
+    (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ | "true" | "false" | "nil"
 }
 
 list = { "(" ~ expr* ~ ")" }

@@ -1,21 +1,28 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
-TILDE_AT = { "~@" }
-SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" }
-
-STRING = { "\"" ~ (raw_string | escape)* ~ "\"" }
-
-raw_string = { (!("\\" | "\"") ~ ANY)+ }
-predefined = { "n" | "r" | "t" | "\\" | "0" | "\"" | "'" }
-escape = { "\\" ~ predefined }
-
 COMMENT = @{ ";" ~ (!("\n" | "\r") ~ ANY)* }
 
-NON_SPECIAL_SEQ = @{
-    (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ | "true" | "false" | "nil"
+// From the docs
+STRING = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 
-list = { "(" ~ expr* ~ ")" }
+boolean = @{ ("true" | "false" ) ~ !ident_char }
+nil = @{ ("nil") ~ !ident_char }
+ident_char = _{ ASCII_ALPHANUMERIC | "_" | "-" | "+" | "/" | "*" | "." }
 
-expr = _{ STRING | COMMENT | NON_SPECIAL_SEQ | list }
+round = { "(" ~ obj* ~ ")" }
+square = { "[" ~ obj* ~ "]" }
+curly = { "{" ~ obj* ~ "}" }
 
-mal = { SOI ~ expr* ~ EOI }
+number = @{ "-"? ~ ASCII_DIGIT+ }
+symbol = @{ !boolean ~ !nil ~ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
+SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" }
+NON_SPECIAL_SEQ = @{ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
+
+obj = _{ number | STRING | round | square | curly | symbol | boolean | nil | COMMENT }
+
+mal = { SOI ~ obj* ~ EOI }

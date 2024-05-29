@@ -17,35 +17,61 @@ fn eval(input: Vec<reader::MalValue>) -> Vec<reader::MalValue> {
     input
 }
 
-fn print(input: Vec<reader::MalValue>) -> String {
-    fn print_node(node: &reader::MalValue) {
-        match node {
-            reader::MalValue::String(s) => print!("\"{}\"", s),
-            reader::MalValue::Comment(c) => print!("{}", c),
-            reader::MalValue::NonSpecialSeq(s) => print!("{}", s),
-            reader::MalValue::List(list) => {
-                print!("(");
-                for (i, item) in list.iter().enumerate() {
-                    if i > 0 {
-                        print!(" ");
-                    }
-                    print_node(item);
-                }
-                print!(")");
-            },
-            reader::MalValue::Mal(content) => {
-                for (i, item) in content.iter().enumerate() {
-                    if i > 0 {
-                        print!(" ");
-                    }
-                    print_node(item);
-                }
-            },
-            reader::MalValue::Other(_) => {}, // Do nothing for other types
-            reader::MalValue::EOI => {}, // Do nothing for EOI
+fn print_list(list: &Vec<reader::MalValue>, open_delim: &str, close_delim: &str) {
+    print!("{}", open_delim);
+    let mut firsttime = true;
+    for v in list {
+        if !firsttime {
+            print!(" ");
         }
+        print_node(v);
+        firsttime = false;
     }
+    print!("{}", close_delim);
+}
 
+fn print_node(node: &reader::MalValue) {
+    match node {
+        reader::MalValue::String(s) => print!("{}", s),
+        reader::MalValue::Symbol(s) => print!("{}", s),
+        reader::MalValue::Number(n) => print!("{}", n),
+        reader::MalValue::Bool(b) => print!("{}", b),
+        reader::MalValue::Nil => print!("nil"),
+        reader::MalValue::Round(r) => {
+            print_list(r, "(", ")");
+        }
+        reader::MalValue::Square(r) => {
+            print_list(r, "[", "]");
+        }
+        reader::MalValue::Curly(r) => {
+            print_list(r, "{", "}");
+        }
+
+        reader::MalValue::Comment(c) => print!("{}", c),
+        reader::MalValue::NonSpecialSeq(s) => print!("{}", s),
+        // reader::MalValue::List(list) => {
+        //     print!("(");
+        //     for (i, item) in list.iter().enumerate() {
+        //         if i > 0 {
+        //             print!(" ");
+        //         }
+        //         print_node(item);
+        //     }
+        //     print!(")");
+        // },
+        reader::MalValue::Mal(content) => {
+            for (i, item) in content.iter().enumerate() {
+                if i > 0 {
+                    print!(" ");
+                }
+                print_node(item);
+            }
+        }
+        // reader::MalValue::Other(_) => {}, // Do nothing for other types
+        reader::MalValue::EOI => {} // Do nothing for EOI
+    }
+}
+fn print(input: Vec<reader::MalValue>) -> String {
     for node in input.iter() {
         print_node(node);
         print!(" "); // Add space after each top-level element
@@ -54,8 +80,6 @@ fn print(input: Vec<reader::MalValue>) -> String {
     // Return an empty string as specified
     String::new()
 }
-
-
 
 // fn print(input: Vec<reader::MalValue>) -> String {
 //     fn print_node(node: reader::MalValue) -> String {

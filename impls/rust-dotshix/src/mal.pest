@@ -1,7 +1,6 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
 COMMENT = @{ ";" ~ (!("\n" | "\r") ~ ANY)* }
 
-// From the docs
 STRING = ${ "\"" ~ inner ~ "\"" }
 inner = @{ char* }
 char = {
@@ -18,11 +17,17 @@ round = { "(" ~ obj* ~ ")" }
 square = { "[" ~ obj* ~ "]" }
 curly = { "{" ~ obj* ~ "}" }
 
+quote = { "'" ~ obj }
+quasiquote = { "`" ~ obj }
+unquote = { "~" ~ obj }
+splicing_unquote = { "~@" ~ obj }
+deref = { "@" ~ obj }
+metadata = { "^" ~ obj ~ obj }
 number = @{ "-"? ~ ASCII_DIGIT+ }
 symbol = @{ !boolean ~ !nil ~ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
-SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" }
+SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" | "\"" }
 NON_SPECIAL_SEQ = @{ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
 
-obj = _{ number | STRING | round | square | curly | symbol | boolean | nil | COMMENT }
+obj = _{ metadata | splicing_unquote | unquote | quasiquote | quote | number | STRING | round | square | curly | symbol | boolean | nil | COMMENT | deref }
 
 mal = { SOI ~ obj* ~ EOI }

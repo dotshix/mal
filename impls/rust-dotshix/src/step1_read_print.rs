@@ -4,20 +4,19 @@ use pest::error::Error;
 use rustyline::config::Configurer;
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Result};
-
-// Import the standard Result type alias
 use std::result::Result as StdResult;
+use reader::mal_parser::{MalValue, Rule, parse_input, format_pest_error};
 
-fn read(input: String) -> StdResult<Vec<reader::MalValue>, Error<reader::Rule>> {
-    reader::parse_input(&input)
+fn read(input: String) -> StdResult<Vec<MalValue>, Error<Rule>> {
+    parse_input(&input)
 }
 
-fn eval(input: Vec<reader::MalValue>) -> Vec<reader::MalValue> {
+fn eval(input: Vec<MalValue>) -> Vec<MalValue> {
     // For now, eval just returns the input
     input
 }
 
-fn print_list(list: &Vec<reader::MalValue>, open_delim: &str, close_delim: &str) {
+fn print_list(list: &Vec<MalValue>, open_delim: &str, close_delim: &str) {
     print!("{}", open_delim);
     let mut firsttime = true;
     for v in list {
@@ -30,36 +29,26 @@ fn print_list(list: &Vec<reader::MalValue>, open_delim: &str, close_delim: &str)
     print!("{}", close_delim);
 }
 
-fn print_node(node: &reader::MalValue) {
+fn print_node(node: &MalValue) {
     match node {
-        reader::MalValue::String(s) => print!("{}", s),
-        reader::MalValue::Symbol(s) => print!("{}", s),
-        reader::MalValue::Number(n) => print!("{}", n),
-        reader::MalValue::Bool(b) => print!("{}", b),
-        reader::MalValue::Nil => print!("nil"),
-        reader::MalValue::Round(r) => {
+        MalValue::String(s) => print!("{}", s),
+        MalValue::Symbol(s) => print!("{}", s),
+        MalValue::Number(n) => print!("{}", n),
+        MalValue::Bool(b) => print!("{}", b),
+        MalValue::Nil => print!("nil"),
+        MalValue::Round(r) => {
             print_list(r, "(", ")");
         }
-        reader::MalValue::Square(r) => {
+        MalValue::Square(r) => {
             print_list(r, "[", "]");
         }
-        reader::MalValue::Curly(r) => {
+        MalValue::Curly(r) => {
             print_list(r, "{", "}");
         }
 
-        reader::MalValue::Comment(c) => print!("{}", c),
-        reader::MalValue::NonSpecialSeq(s) => print!("{}", s),
-        // reader::MalValue::List(list) => {
-        //     print!("(");
-        //     for (i, item) in list.iter().enumerate() {
-        //         if i > 0 {
-        //             print!(" ");
-        //         }
-        //         print_node(item);
-        //     }
-        //     print!(")");
-        // },
-        reader::MalValue::Mal(content) => {
+        MalValue::Comment(c) => print!("{}", c),
+        MalValue::NonSpecialSeq(s) => print!("{}", s),
+        MalValue::Mal(content) => {
             for (i, item) in content.iter().enumerate() {
                 if i > 0 {
                     print!(" ");
@@ -67,41 +56,19 @@ fn print_node(node: &reader::MalValue) {
                 print_node(item);
             }
         }
-        // reader::MalValue::Other(_) => {}, // Do nothing for other types
-        reader::MalValue::EOI => {} // Do nothing for EOI
+        MalValue::EOI => {} // Do nothing for EOI
     }
 }
-fn print(input: Vec<reader::MalValue>) -> String {
+
+fn print(input: Vec<MalValue>) -> String {
     for node in input.iter() {
         print_node(node);
         print!(" "); // Add space after each top-level element
     }
 
-    // Return an empty string as specified
+    // Return empty string for now
     String::new()
 }
-
-// fn print(input: Vec<reader::MalValue>) -> String {
-//     fn print_node(node: reader::MalValue) -> String {
-//     match node {
-//         reader::MalValue::String(s) => s,
-//         reader::MalValue::Comment(c) => format!(";{}", c),
-//         reader::MalValue::NonSpecialSeq(s) => s,
-//         reader::MalValue::List(list) => {
-//             let list_str: Vec<String> = list.into_iter().map(|v| print_node(v)).collect();
-//             format!("({})", list_str.join(" "))
-//         },
-//         reader::MalValue::Other(s) => s.split_whitespace().collect::<Vec<_>>().join(" "), // Normalize spaces
-//         reader::MalValue::EOI => "".to_string(), // Handle EOI variant
-//     }
-//     }
-
-//     input
-//         .into_iter()
-//         .map(print_node)
-//         .collect::<Vec<String>>()
-//         .join(" ")
-// }
 
 fn rep(input: String) -> String {
     match read(input) {
@@ -109,7 +76,7 @@ fn rep(input: String) -> String {
             let evaluated = eval(parsed);
             print(evaluated)
         }
-        Err(e) => format!("Error: {:?}", e),
+        Err(e) => format!("Error: {:?}", format_pest_error(e)),
     }
 }
 

@@ -8,6 +8,7 @@ use rustyline::{DefaultEditor, Result};
 use std::result::Result as StdResult;
 use reader::mal_parser::{MalValue, Rule, parse_input, format_pest_error};
 use printer::mal_printer::print_node;
+use env_logger;
 
 fn read(input: String) -> StdResult<Vec<MalValue>, Error<Rule>> {
     parse_input(&input)
@@ -39,6 +40,11 @@ fn rep(input: String) -> String {
 }
 
 fn main() -> Result<()> {
+    // Run with
+    // RUST_LOG=debug,rustyline=off
+    // for debug purposes
+    env_logger::init();
+
     let mut rl = DefaultEditor::new()?;
     rl.set_auto_add_history(true);
 

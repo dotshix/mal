@@ -1,4 +1,5 @@
 pub mod mal_parser {
+    use log::debug;
     use pest::error::{Error, ErrorVariant};
     use pest::iterators::Pair;
     use pest::Parser;
@@ -62,59 +63,67 @@ pub mod mal_parser {
     }
 
     fn build_ast(pair: Pair<Rule>) -> MalValue {
-        println!("Processing rule: {:?}", pair.as_rule());
-        println!("Pair content: {:?}", pair.as_str());
+        debug!("Processing rule: {:?}", pair.as_rule());
+        //debug!("Pair content: {:?}", pair.as_str());
 
         match pair.as_rule() {
             Rule::STRING => {
                 let content = pair.as_str().to_string();
-                println!("STRING content: {:?}", content);
+                debug!("STRING content: {:?}", content);
                 MalValue::String(content)
             }
 
             Rule::symbol => {
                 let content = pair.as_str().to_string();
+                debug!("SYMBOL content: {:?}", content);
                 MalValue::Symbol(content)
             }
 
             Rule::number => {
                 let content = pair.as_str().parse::<i64>().unwrap();
+                debug!("NUMBER content: {:?}", content);
                 MalValue::Number(content)
             }
 
             Rule::boolean => {
                 let content = pair.as_str() == "true";
+                debug!("BOOLEAN content: {:?}", content);
                 MalValue::Bool(content)
             }
 
             Rule::round => {
                 let content = pair.into_inner().map(build_ast).collect::<Vec<_>>();
+                debug!("ROUND content: {:?}", content);
                 MalValue::Round(content)
             }
             Rule::square => {
                 let content = pair.into_inner().map(build_ast).collect::<Vec<_>>();
+                debug!("SQUARE content: {:?}", content);
                 MalValue::Square(content)
             }
             Rule::curly => {
                 let content = pair.into_inner().map(build_ast).collect::<Vec<_>>();
+                debug!("CURLY content: {:?}", content);
                 MalValue::Curly(content)
             }
 
             Rule::COMMENT => {
                 let content = pair.as_str().to_string();
-                // println!("COMMENT content: {:?}", content);
+                debug!("COMMENT content: {:?}", content);
                 MalValue::Comment(content)
             }
 
             Rule::quote => {
                 let inner_pair = pair.into_inner().next().unwrap();
                 let quoted_value = build_ast(inner_pair);
+                debug!("QUOTE content: {:?}", quoted_value);
                 MalValue::Round(vec![MalValue::Symbol("quote".to_string()), quoted_value])
             }
 
             Rule::quasiquote => {
                 let inner_pair = pair.into_inner().next().unwrap();
                 let quoted_value = build_ast(inner_pair);
+                debug!("QUASIQUOTE content: {:?}", quoted_value);
                 MalValue::Round(vec![
                     MalValue::Symbol("quasiquote".to_string()),
                     quoted_value,
@@ -124,12 +133,14 @@ pub mod mal_parser {
             Rule::unquote => {
                 let inner_pair = pair.into_inner().next().unwrap();
                 let quoted_value = build_ast(inner_pair);
+                debug!("UNQUOTE content: {:?}", quoted_value);
                 MalValue::Round(vec![MalValue::Symbol("unquote".to_string()), quoted_value])
             }
 
             Rule::splicing_unquote => {
                 let inner_pair = pair.into_inner().next().unwrap();
                 let quoted_value = build_ast(inner_pair);
+                debug!("SPLICING-UNQUOTE content: {:?}", quoted_value);
                 MalValue::Round(vec![
                     MalValue::Symbol("splice-unquote".to_string()),
                     quoted_value,
@@ -139,31 +150,40 @@ pub mod mal_parser {
             Rule::deref => {
                 let inner_pair = pair.into_inner().next().unwrap();
                 let quoted_value = build_ast(inner_pair);
+                debug!("DEREF content: {:?}", quoted_value);
                 MalValue::Round(vec![MalValue::Symbol("deref".to_string()), quoted_value])
             }
 
             Rule::metadata => {
                 let mut inner_pairs = pair.into_inner();
                 let meta_pair = inner_pairs.next().unwrap();
+                debug!("META pair content: {:?}", meta_pair);
                 let meta_value = build_ast(meta_pair);
+                debug!("META value: {:?}", meta_value);
                 let target_pair = inner_pairs.next().unwrap();
+                debug!("META TARGET pair content: {:?}", target_pair);
                 let target_value = build_ast(target_pair);
+                debug!("META TARGET value: {:?}", target_value);
                 MalValue::Round(vec![
                     MalValue::Symbol("with-meta".to_string()),
                     target_value,
                     meta_value,
                 ])
             }
-            Rule::nil => MalValue::Nil,
+
+            Rule::nil => {
+                debug!("NIL content: nil");
+                MalValue::Nil
+            }
 
             Rule::NON_SPECIAL_SEQ => {
                 let content = pair.as_str().to_string();
-                // println!("NON_SPECIAL_SEQ content: {:?}", content);
+                debug!("NON_SPECIAL_SEQ content: {:?}", content);
                 MalValue::NonSpecialSeq(content)
             }
             Rule::mal => {
                 let content = pair.into_inner().map(build_ast).collect::<Vec<_>>();
-                println!("Mal content: {:?}", content);
+                debug!("Mal content: {:?}", content);
                 if content.len() == 1 {
                     content.into_iter().next().unwrap()
                 } else {
@@ -171,11 +191,11 @@ pub mod mal_parser {
                 }
             }
             Rule::EOI => {
-                println!("EOI encountered");
+                debug!("EOI encountered");
                 MalValue::EOI
             }
             _ => {
-                // println!("Unexpected rule encountered: {:?}", pair.as_rule());
+                // debug!("Unexpected rule encountered: {:?}", pair.as_rule());
                 panic!("Unexpected rule: {:?}", pair.as_rule());
             }
         }

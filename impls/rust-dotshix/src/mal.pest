@@ -27,7 +27,8 @@ number = @{ "-"? ~ ASCII_DIGIT+ }
 symbol = @{ !boolean ~ !nil ~ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
 SPECIAL_CHAR = { "[" | "]" | "{" | "}" | "(" | ")" | "`" | "~" | "^" | "@" | "\"" }
 NON_SPECIAL_SEQ = @{ (!SPECIAL_CHAR ~ !WHITESPACE ~ !COMMENT ~ ANY)+ }
+atom = @{ ":" ~ symbol }
 
-obj = _{ metadata | splicing_unquote | unquote | quasiquote | quote | number | STRING | round | square | curly | symbol | boolean | nil | COMMENT | deref }
+obj = _{ metadata | splicing_unquote | unquote | quasiquote | quote | number | STRING | atom | round | square | curly | symbol | boolean | nil | COMMENT | deref }
 
 mal = { SOI ~ obj* ~ EOI }

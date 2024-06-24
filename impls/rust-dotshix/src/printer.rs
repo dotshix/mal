@@ -22,6 +22,7 @@ pub mod mal_printer {
             MalValue::Number(n) => print!("{}", n),
             MalValue::Bool(b) => print!("{}", b),
             MalValue::Nil => print!("nil"),
+            MalValue::Atom(a) => print!("{}", a),
             MalValue::Round(r) => {
                 print_list(r, "(", ")");
             }

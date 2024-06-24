@@ -22,6 +22,7 @@ pub mod mal_parser {
         Mal(Vec<MalValue>),    // Represents a LISP S-expression, e.g., (+ 1 2)
         Comment(String),       // Represents a LISP comment, e.g., ; this is a comment
         NonSpecialSeq(String), // Represents a sequence of characters that are not special symbols, e.g., abc123
+        Atom(String),          // Represents a LISP atom, e.g., a single, indivisible unit like a variable name or keyword
         // Other(String),         // Represents any other token not specifically categorized, e.g., +
         EOI, // Represents the end of input
     }
@@ -152,6 +153,12 @@ pub mod mal_parser {
                 let quoted_value = build_ast(inner_pair);
                 debug!("DEREF content: {:?}", quoted_value);
                 MalValue::Round(vec![MalValue::Symbol("deref".to_string()), quoted_value])
+            }
+
+            Rule::atom => {
+                let content = pair.as_str().to_string();
+                debug!("ATOM content: {:?}", content);
+                MalValue::Atom(content)
             }
 
             Rule::metadata => {

@@ -96,31 +96,29 @@ fn eval(ast: &MalValue, env: &HashMap<String, Function>) -> Result<MalValue> {
                 .collect::<Result<Vec<MalValue>>>()?;
             let name = &eval_list[0];
             let rest = &eval_list[1..];
+
             match name {
                 MalValue::Symbol(s) => {
                     if let Some(func) = env.get(s) {
-                        if rest.len() != 2 {
-                            return Err(format!(
-                                "Expected exactly two arguments for binary function"
-                            ));
-                        }
-                        if let (MalValue::Number(a), MalValue::Number(b)) = (&rest[0], &rest[1]) {
-                            Ok(MalValue::Number(func(*a, *b)))
-                        } else {
-                            Err(format!("Expected number arguments"))
-                        }
-                    } else {
-                        // TODO Might need to change this
-                        // Err(format!("Function not found: {}", s))
-                        Ok(MalValue::Round(eval_list.clone()))
+                        return eval_function_call(func, rest);
                     }
+                    Ok(MalValue::Round(eval_list.clone()))
                 }
-                // TODO Might need to change this
-                _ => Ok(MalValue::Round(eval_list.clone())), // Err(format!("First element is not a function symbol")),
+                _ => Ok(MalValue::Round(eval_list.clone())),
             }
         }
-        MalValue::Square(_) | MalValue::Curly(_) | MalValue::Mal(_) => eval_ast(ast, env),
         _ => eval_ast(ast, env),
+    }
+}
+
+fn eval_function_call(func: &Function, args: &[MalValue]) -> Result<MalValue> {
+    if args.len() != 2 {
+        return Err(format!("Expected exactly two arguments for binary function").into());
+    }
+    if let (MalValue::Number(a), MalValue::Number(b)) = (&args[0], &args[1]) {
+        Ok(MalValue::Number(func(*a, *b)))
+    } else {
+        Err(format!("Expected number arguments").into())
     }
 }
 
